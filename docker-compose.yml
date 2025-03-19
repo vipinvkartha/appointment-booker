@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  db:
+    build: ./database
+    container_name: enpal-coding-challenge-db
+    restart: always
+    ports:
+      - "5433:5432" # Expose port 5433 to host, container uses 5432 internally
+    environment:
+      POSTGRES_DB: coding-challenge
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mypassword123!
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: enpal-backend
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_URL: postgres://postgres:mypassword123!@db:5432/coding-challenge
+    command: node dist/server.js
+
+  adminer:
+    image: adminer
+    container_name: enpal-adminer
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "5050:8080" 
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+
+volumes:
+  pg_data:
